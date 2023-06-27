@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'add_note_screen.dart';
+import 'note.dart';
+import 'note_details_screen.dart';
 
 class NoteListScreen extends StatefulWidget {
   @override
@@ -7,7 +8,7 @@ class NoteListScreen extends StatefulWidget {
 }
 
 class _NoteListScreenState extends State<NoteListScreen> {
-  List<String> notes = [];
+  List<Note> notes = [];
 
   @override
   Widget build(BuildContext context) {
@@ -15,51 +16,50 @@ class _NoteListScreenState extends State<NoteListScreen> {
       appBar: AppBar(
         title: Text('Notes'),
       ),
-      body: NoteList(notes: notes),
+      body: ListView.builder(
+        itemCount: notes.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(notes[index].title),
+            onTap: () {
+              _navigateToNoteDetailsScreen(index);
+            },
+            trailing: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                _deleteNoteDialog(index);
+              },
+            ),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final newNote = await Navigator.pushNamed(context, '/addNote');
-          if (newNote != null) {
-            setState(() {
-              notes.add(newNote as String);
-            });
-          }
+        onPressed: () {
+          _navigateToNoteDetailsScreen(-1);
         },
         child: Icon(Icons.add),
       ),
     );
   }
-}
 
-class NoteList extends StatelessWidget {
-  final List<String> notes;
-
-  const NoteList({Key? key, required this.notes}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: notes.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(notes[index]),
-          onTap: () {
-            // TODO: Open the screen to edit the note
-          },
-          trailing: IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: () {
-              // TODO: Delete the note from Firebase
-              _deleteNote(context, index);
-            },
-          ),
-        );
-      },
+  void _navigateToNoteDetailsScreen(int noteIndex) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NoteDetailsScreen(noteIndex: noteIndex)),
     );
+
+    if (result != null && noteIndex == -1) {
+      setState(() {
+        notes.add(result);
+      });
+    } else if (result != null && noteIndex >= 0) {
+      setState(() {
+        notes[noteIndex] = result;
+      });
+    }
   }
 
-
-  void _deleteNote(BuildContext context, int index) {
+  void _deleteNoteDialog(int noteIndex) {
     showDialog(
       context: context,
       builder: (context) {
@@ -76,9 +76,8 @@ class NoteList extends StatelessWidget {
             TextButton(
               child: Text('Delete'),
               onPressed: () {
-                // Delete the note
                 setState(() {
-                  notes.removeAt(index);
+                  notes.removeAt(noteIndex);
                 });
                 Navigator.of(context).pop();
               },
@@ -89,5 +88,3 @@ class NoteList extends StatelessWidget {
     );
   }
 }
-
-

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'add_note_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'note_list_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(NoteApp());
 }
 
@@ -10,14 +12,11 @@ class NoteApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Note Taking App',
+      title: 'Note App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       home: NoteListScreen(),
-      routes: {
-        '/addNote': (context) => AddNoteScreen(),
-      },
     );
   }
 }
